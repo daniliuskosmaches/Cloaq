@@ -32,6 +32,7 @@ func Encrypt(key []byte, plaintext []byte) ([]byte, error) {
 	ciphertext := gcm.Seal(nil, nonce, plaintext, nil)
 
 	// Return [12 bytes of Nonce] + [Encrypted Data] + [16 bytes of Auth Tag]
+	//Auth tag is alredy inside the ciphertext
 	out := make([]byte, 0, len(nonce)+len(ciphertext))
 	out = append(out, nonce...)
 	out = append(out, ciphertext...)
