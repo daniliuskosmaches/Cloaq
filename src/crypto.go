@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 )
 
 func Encrypt(key []byte, plaintext []byte) ([]byte, error) {
@@ -67,4 +68,19 @@ func Decrypt(key []byte, data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("decrypt: gcm.Open: %w", err)
 	}
 	return plaintext, nil
+}
+
+type Session struct {
+	Key       []byte
+	CreatedAt time.Time
+}
+
+func (s *Session) RotateKey() error {
+	newKey := make([]byte, 32) // AES-256
+	if _, err := rand.Read(newKey); err != nil {
+		return err
+	}
+	s.Key = newKey
+	s.CreatedAt = time.Now()
+	return nil
 }

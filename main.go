@@ -15,15 +15,13 @@
 package main
 
 import (
+	network "cloaq/src"
+	"cloaq/src/routing"
+	"cloaq/src/tun"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
-
-	"cloaq/src/tun"
-
-	network "cloaq/src"
-	routing "cloaq/src/routing"
 )
 
 func main() {
@@ -47,6 +45,12 @@ func main() {
 func runCommand() {
 	fmt.Println("Starting Cloaq...")
 	fmt.Println("GOOS:", runtime.GOOS, "GOARCH:", runtime.GOARCH)
+
+	_, err := network.GenerateIdentity()
+	if err != nil {
+		fmt.Println("Identity generation error:", err)
+		return
+	}
 
 	dev, err := tun.InitDevice()
 	if err != nil {
