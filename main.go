@@ -15,19 +15,12 @@
 package main
 
 import (
+	"cloaq/src/commands"
 	"flag"
 	"fmt"
+
 	"log"
 	"os"
-	"runtime"
-	"time"
-
-	_ "flag"
-
-	"cloaq/src/tun"
-
-	network "cloaq/src"
-	routing "cloaq/src/routing"
 )
 
 func main() {
@@ -35,95 +28,23 @@ func main() {
 		log.Println("Usage: cloaq <command>")
 		return
 	}
-
-	switch os.Args[1] {
-	case "run":
-		runCommand()
-	case "settings":
-		settingsCommand()
-	case "help":
-		helpCommand()
-	default:
-		log.Println("Unknown command:", os.Args[1])
-	}
-}
-
-func runCommand() {
-	log.Println("Starting Cloaq...")
-	log.Println("GOOS:", runtime.GOOS, "GOARCH:", runtime.GOARCH)
-
 	port := flag.Int("port", 8080, "Port to listen on")
 	peers := flag.String("peers", "", "Comma-separated list of peer addresses")
-
-	flag.CommandLine.Parse(os.Args[2:])
+	err := flag.CommandLine.Parse(os.Args[2:])
+	if err != nil {
+		return
+	}
 
 	fmt.Printf("Starting Cloaq on port %d...\n", *port)
 
-	// Initialize the identity for this node
-	identity, err := network.GenerateIdentity()
-	if err != nil {
-		log.Fatal("identity creation failed: ", err)
+	switch os.Args[1] {
+	case "run":
+		commands.RunCommand(*port, *peers)
+	case "settings":
+		commands.SettingsCommand()
+	case "help":
+		commands.HelpCommand()
+	default:
+		log.Println("Unknown command:", os.Args[1])
 	}
-	// Logging the pubkey of the identity
-	log.Println("Current node's pubkey: ", string(identity.PublicKey.Bytes()))
-
-	// Initialization of the VNIC on the node
-	dev, err := tun.InitDevice()
-	if err != nil {
-		log.Fatal("Tunnel init error:", err)
-	}
-	defer dev.Close()
-
-	log.Println("VNIC has been initialized:", dev.Name())
-
-	// Start VNIC processing
-	if err := dev.Start(); err != nil {
-		log.Fatal("VNIC start error:", err)
-	}
-
-	log.Println("Reading packets from the VNIC...")
-
-	startMonitor()
-	log.Println("Monitor started")
-
-	// Read packets from VNIC
-	go func() {
-		if err := network.ReadLoop(dev); err != nil {
-			log.Println("ReadLoop error:", err)
-		}
-	}()
-
-	// Initialize the router
-	router := &routing.Router{}
-
-	// Example static routes
-	_ = router.AddRoute("2001:db8:1::/64", "eth0")
-	_ = router.AddRoute("2001:db8:2::/64", "eth1")
-
-	log.Println("IPv6 TUN gateway created")
-
-	// Prevent program from exiting
-	select {}
-}
-
-func helpCommand() {
-	log.Println("help text")
-}
-
-func settingsCommand() {
-	log.Println("settings text")
-}
-
-func startMonitor() {
-	go func() {
-		var m runtime.MemStats
-		for {
-			runtime.ReadMemStats(&m)
-
-			log.Printf("[MONITOR] Alloc: %v MB, Sys: %v MB, Goroutines: %v",
-				m.Alloc/1024/1024, m.Sys/1024/1024, runtime.NumGoroutine())
-
-			time.Sleep(10 * time.Second)
-		}
-	}()
 }

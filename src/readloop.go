@@ -22,13 +22,16 @@ import (
 
 // Reads packets from Tunnel, FOR NOW it's just logs basic info (IPv4/IPv6)
 func ReadLoop(dev tun.Device) error {
+
 	buf := make([]byte, 65535)
 
 	for {
 		n, err := dev.Read(buf)
 		if err != nil {
+			log.Println("readloop error:", err)
 			return err
 		}
+
 		pkt := buf[:n]
 		if len(pkt) < 1 {
 			continue
@@ -37,11 +40,11 @@ func ReadLoop(dev tun.Device) error {
 		ver := pkt[0] >> 4
 		switch ver {
 		case 6:
-			log.Printf("IPv6 packet: %d bytes\n", len(pkt))
+			log.Println("ipv6 packet:", len(pkt), "bytes")
 		case 4:
-			log.Printf("IPv4 packet: %d bytes\n", len(pkt))
+			log.Println("ipv4 packet:", len(pkt), "bytes")
 		default:
-			log.Printf("Unknown packet version %d: %d bytes\n", ver, len(pkt))
+			log.Println("unknown packet version", ver, ":", len(pkt), "bytes")
 		}
 	}
 }
