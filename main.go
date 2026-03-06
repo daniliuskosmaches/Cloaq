@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"runtime"
@@ -45,41 +44,41 @@ func main() {
 }
 
 func runCommand() {
-	fmt.Println("Starting Cloaq...")
-	fmt.Println("GOOS:", runtime.GOOS, "GOARCH:", runtime.GOARCH)
+	log.Println("Starting Cloaq...")
+	log.Println("GOOS:", runtime.GOOS, "GOARCH:", runtime.GOARCH)
 
+	// Initialize the identity for this node
+	identity, err := network.GenerateIdentity()
+	if err != nil {
+		log.Fatal("identity creation failed: ", err)
+	}
+	// Logging the pubkey of the identity
+	log.Println("Current node's pubkey: ", string(identity.PublicKey.Bytes()))
+
+	// Initialization of the VNIC on the node
 	dev, err := tun.InitDevice()
 	if err != nil {
-		fmt.Println("Tunnel init error:", err)
-		return
+		log.Fatal("Tunnel init error:", err)
 	}
-
-	if dev == nil {
-		fmt.Println("Tunnel initialized (no device object returned on this OS yet).")
-		fmt.Println("Cloaq running.")
-		select {}
-	}
-
 	defer dev.Close()
 
-	fmt.Println("Tunnel ready:", dev.Name())
+	log.Println("VNIC has been initialized:", dev.Name())
 
-	// Start tunnel processing
+	// Start VNIC processing
 	if err := dev.Start(); err != nil {
-		fmt.Println("Tunnel start error:", err)
-		return
+		log.Fatal("VNIC start error:", err)
 	}
 
-	fmt.Println("Reading packets from tunnel...")
+	log.Println("Reading packets from the VNIC...")
 
-	// Read packets from TUN
+	// Read packets from VNIC
 	go func() {
 		if err := network.ReadLoop(dev); err != nil {
-			fmt.Println("ReadLoop error:", err)
+			log.Println("ReadLoop error:", err)
 		}
 	}()
 
-	// Initialize router (defined in src/router.go)
+	// Initialize the router
 	router := &routing.Router{}
 
 	// Example static routes
@@ -87,9 +86,6 @@ func runCommand() {
 	_ = router.AddRoute("2001:db8:2::/64", "eth1")
 
 	log.Println("IPv6 TUN gateway created")
-
-	// Start IPv6 packet listener (defined in src/routing/listener.go)
-	go routing.CreateIPv6PacketListener(dev)
 
 	// Prevent program from exiting
 	select {}
