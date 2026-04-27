@@ -64,6 +64,7 @@ const (
 
 func TestTunnel(t *testing.T) {
 	args := []string{}
+	key := []byte{78, 69, 73, 76, 80, 73, 68, 79, 82, 65, 83}
 
 	_, _, identityA, err := createNode(INSTANCE_A_PORT, args)
 	if err != nil {
@@ -75,12 +76,12 @@ func TestTunnel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	transportA, err := NewTransport(":9001")
+	transportA, err := NewTransport(":9001", key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	transportB, err := NewTransport(":9002")
+	transportB, err := NewTransport(":9002", key)
 	if err != nil {
 		t.Fatal(err)
 	}

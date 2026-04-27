@@ -12,13 +12,10 @@
 // For commercial licensing inquiries or permissions beyond the scope of this
 // license, please create an issue in github.
 
-
-	package network
+package network
 
 import (
 	"cloaq/src/utils"
-	"fmt"
-	"log"
 	"net"
 	"sync/atomic"
 )
@@ -78,4 +75,3 @@ func (t *Transport) Listen(incoming chan<- []byte) {
 		incoming <- packet
 	}
 }
-
