@@ -12,13 +12,10 @@
 // For commercial licensing inquiries or permissions beyond the scope of this
 // license, please create an issue in github.
 
-
-	package network
+package network
 
 import (
 	"cloaq/src/utils"
-	"fmt"
-	"log"
 	"net"
 	"sync/atomic"
 )
@@ -44,6 +41,10 @@ func NewTransport(listenAddr string, key []byte) (*Transport, error) {
 		conn: conn,
 		key:  key,
 	}, nil
+}
+
+func (t *Transport) Close() error {
+	return t.conn.Close()
 }
 
 func (t *Transport) SendTo(addr string, data []byte) error {
@@ -78,4 +79,3 @@ func (t *Transport) Listen(incoming chan<- []byte) {
 		incoming <- packet
 	}
 }
-
