@@ -43,6 +43,10 @@ func NewTransport(listenAddr string, key []byte) (*Transport, error) {
 	}, nil
 }
 
+func (t *Transport) Close() error {
+	return t.conn.Close()
+}
+
 func (t *Transport) SendTo(addr string, data []byte) error {
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {

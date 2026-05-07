@@ -26,7 +26,7 @@ func NewCloaqNode(peers []string) (*CloaqNode, error) {
 		return nil, err
 	}
 
-	tr, err := network.NewTransport(":9000")
+	tr, err := network.NewTransport(":9000", id.PrivateKey.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (n *CloaqNode) ProcessPacket(pkt utils.Packet) {
 	}
 
 	target := n.Peers[0]
-	onionedData, _ := utils.Encapsulate(pkt.Data)
+	onionedData, _ := utils.Encapsulate(pkt.Data, n.Identity.PrivateKey.Bytes())
 
 	err := n.Transport.SendTo(target, onionedData)
 	if err == nil {
